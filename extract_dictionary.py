@@ -35,7 +35,7 @@ def main():
 
     f = open(save_file_path, "w")
 
-    for dirpath, dirs, files in os.walk(src_file_path): # TODO: the starting dir name should be given by user
+    for dirpath, dirs, files in os.walk(src_file_path): 
         for filename in files:
             if '.java' in filename:
                 f.write("START CLASSLITERALS\n\n")
@@ -44,6 +44,10 @@ def main():
                 fname = os.path.join(dirpath,filename)
                 temp_dirpath = dirpath.replace('/', '.').lstrip('.')
                 class_name = temp_dirpath + '.' + class_name
+                to_be_removed = src_file_path.rsplit("/", 1)[0]
+                to_be_removed = to_be_removed.replace("/", ".") + "."
+                class_name = class_name.replace(to_be_removed, "")
+
                 print("class name: ", class_name)
 
                 f.write(class_name+'\n\n')
