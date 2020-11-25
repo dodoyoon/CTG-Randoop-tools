@@ -199,17 +199,18 @@ def heuristic10(case):
     
 
 '''
-Arggument explaination
-python3 filter_result.py arg1 arg2 arg3 arg4 arg5 arg6
-
-arg1: previous version json file
-arg2: current version json file
+Argument explaination
+python3 filter_result.py arg1 arg2 arg3 arg4 arg5 arg6 arg7
+arg1: prev version json file(correct)
+arg2: current version json file(buggy)
 arg3: heuristic number(1~10)
-arg4: prev commit hash
-arg5: current commit hash
-arg6: output file name
-
+arg4: prev commit hash(correct)
+arg5: current commit hash(buggy)
+arg6: path to source code directory
+arg7: gerrit server address
+arg8: number of result that will be shown(optional)
 '''
+
 def init_git_diff():
     buggy_hash = sys.argv[5]
     correct_hash = sys.argv[4]
@@ -282,6 +283,31 @@ def init_git_diff():
     return result
     
 
+
+def outputting_result(data):
+    result_list = []
+
+    i = 0
+    for datum in data:
+        if i == 3:
+            break
+
+        id_str = datum['id']
+        exception_str = datum['exception'][0]
+        loc_list = datum['location']
+        
+        result_str = id_str + '\n' + exception_str + '\n'
+        for loc in loc_list:
+            result_str += '\t' + loc +'\n'
+
+        result_list.append(result_str)
+        i += 1
+
+    return result_list
+
+
+
+
 def main():
     cnt = 0
     data3 = []
@@ -300,7 +326,7 @@ def main():
         'heuristic10': heuristic10
     }
 
-    # diff_result = init_git_diff()
+    diff_result = init_git_diff()
     
     for i in data2['descriptions']:
         # if not heuristic_dict[heuristic_key](i, changed_method_list):
@@ -308,11 +334,25 @@ def main():
             cnt+=1
             data3.append(copy.deepcopy(i))
 
-    # Save Result
-    filename = sys.argv[6]
-    with open(filename, 'w') as outfile:
-        json.dump(data3, outfile, indent=4)
 
+    gerrit_server_address = sys.argv[7]
+    num_of_output = sys.argv[8]
+
+    if num_of_output.isdigit():
+        num_of_output = int(num_of_output)
+
+
+    result = outputting_result(data3)
+    if num_of_output:
+        num_of_output_final = min(len(result), num_of_output)
+    else:
+        num_of_output_final = len(result)
+
+    for i in range(num_of_output_final):
+        command1 = "ssh -p 29418 " + gerrit_server_address + " gerrit review —code-review 0 -m "
+        command2 = " $(git rev-parse HEAD)"
+        command = command1 + "cat << EOF\n" + result[i] + "EOF" + command2
+        subprocess.call(command, shell=True)
 
 
 if __name__ == "__main__":
