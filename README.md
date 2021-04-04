@@ -14,7 +14,7 @@ CTG-Randoop, short for 'Continuous Unit Test Generation with Randoop', is a fram
 ### extract_dictionary.py
 Python module to extract keywords from the given source code to use as Randoop test's seeds. When given input of source code path, it produces text file named 'literalsfile.txt' which contains seed constants to be used for testing of each class. 
 ```
-python3 extract_dictionary.py [source code path]
+python3 extract_dictionary.py [source code path] [save file path]
 ```
 
 ### filter_result.py
